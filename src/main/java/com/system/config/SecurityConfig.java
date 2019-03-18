@@ -57,9 +57,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			"/v2/api-docs", "/swagger-resources", "/swagger-resources/**", "/configuration/ui",
 			"/configuration/security", "/swagger-ui.html", "/webjars/**",
 
-			// other public endpoints of your API may be appended to this array
-			"/api/auth/**", "/h2-console/**", "/api/**",
-
+			//Enpoints which are open for all
+			"/api/auth/**", "/h2-console/**", 
+			
+			//Enable for deactivation of Security
+			"/api/**",
 			// Registration
 			"/api/user/checkUsernameAvailability", "/api/user/checkEmailAvailability" };
 
@@ -74,7 +76,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		http.cors().and().csrf().disable().exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()
 				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().authorizeRequests()
 				.antMatchers(RESTRICT).permitAll().antMatchers(AUTH_WHITELIST).permitAll()
-				.antMatchers(HttpMethod.GET, USER_ACCESS).permitAll().anyRequest().authenticated();
+				.antMatchers(HttpMethod.GET, USER_ACCESS).authenticated().anyRequest().authenticated();
 		// .antMatchers(HttpMethod.GET, "/api/polls/**",
 		// "/api/users/**").authenticated();
 
