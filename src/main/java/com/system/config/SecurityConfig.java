@@ -24,7 +24,7 @@ import com.system.security.JwtAuthenticationFilter;
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(securedEnabled = true, jsr250Enabled = true, prePostEnabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
-	
+
 	@Autowired
 	CustomUserDetailsService customUserDetailsService;
 
@@ -52,18 +52,31 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		return new BCryptPasswordEncoder();
 	}
 
+	private static final String[] AUTH_WHITELIST = {
+			// -- swagger ui
+			"/v2/api-docs", "/swagger-resources", "/swagger-resources/**", "/configuration/ui",
+			"/configuration/security", "/swagger-ui.html", "/webjars/**",
+
+			// other public endpoints of your API may be appended to this array
+			"/api/auth/**", "/h2-console/**", "/api/**",
+
+			// Registration
+			"/api/user/checkUsernameAvailability", "/api/user/checkEmailAvailability" };
+
+	private static final String[] RESTRICT = { "/", "/favicon.ico", "/**/*.png", "/**/*.gif", "/**/*.svg", "/**/*.jpg",
+			"/**/*.html", "/**/*.css", "/**/*.js" };
+	
+	private static final String[] USER_ACCESS = { "/api/polls/**", "/api/users/**"};
+
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http.headers().frameOptions().sameOrigin();
 		http.cors().and().csrf().disable().exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()
-				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
-				//.authorizeRequests().antMatchers("/", "/favicon.ico", "/**/*.png", "/**/*.gif", "/**/*.svg", "/**/*.jpg")
-				.authorizeRequests().antMatchers("/", "/favicon.ico", "/**/*.png", "/**/*.gif", "/**/*.svg", "/**/*.jpg", "/**/*.html",
-						"/**/*.css", "/**/*.js")
-				.permitAll().antMatchers("/api/auth/**", "/h2-console/**", "/api/**")
-				.permitAll().antMatchers("/api/user/checkUsernameAvailability", "/api/user/checkEmailAvailability")
-				.permitAll().antMatchers(HttpMethod.GET, "/api/polls/**", "/api/users/**")
-				.permitAll().anyRequest().authenticated();
+				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().authorizeRequests()
+				.antMatchers(RESTRICT).permitAll().antMatchers(AUTH_WHITELIST).permitAll()
+				.antMatchers(HttpMethod.GET, USER_ACCESS).permitAll().anyRequest().authenticated();
+		// .antMatchers(HttpMethod.GET, "/api/polls/**",
+		// "/api/users/**").authenticated();
 
 		// Add our custom JWT security filter
 		http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
